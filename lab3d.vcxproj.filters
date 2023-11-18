@@ -90,4 +90,15 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="iron_block.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="gold_block.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="bricks.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

@@ -26,8 +26,9 @@ public:
     float getX() { return m_x; }
     float getY() { return m_y; }
     float getZ() { return m_z; }
+    float getFov() { return m_fov; }
+    float isPerspectiveProjection() { return m_perspective_projection; }
 
-    void setKeyboard(int i, bool state) { m_keys[i] = state; }
     void setMouse(int x, int y) { m_mouseX = x; m_mouseY = y; }
     void setX(float x) { m_x = x; }
     void setY(float y) { m_y = y; }
@@ -38,20 +39,16 @@ public:
 
 private:
 
-    enum    DIR { FORWARD, BACKWARD, LEFT, RIGHT };   /* translation direction */
-    typedef std::map<DIR, int> k_map;
-
-    k_map    m_keyMap;                               /* associations keys - directions */
-    bool     m_keys[255];                             /* keys being pushed (true if pushed) */
-    float    m_x;                                     /* sphere center x axis */
-    float    m_y;                                     /* sphere center y axis */
-    float    m_z;                                     /* sphere center z axis */
-    int      m_mouseX;                               /* mouse x position */
-    int      m_mouseY;                               /* mouse y position */
-    float    m_psi;                                   /* psi angle in spherical coordinates */
-    float    m_theta;                                 /* theta angle in spherical coordinates */
-    float    m_rotationSpeed;                        /* equivalent to mouse sensibility */
-    float    m_translationSpeed;                     /* equivalent to keyboard sensibility */
-    float    m_time;                                  /* to keep track of the time between two function calls */
-
+    float    m_x;                                 
+    float    m_y;                                  
+    float    m_z;                                   
+    float    m_psi;                                  
+    float    m_theta;                                
+	bool     m_perspective_projection{ true };
+	float    m_fov{ 45.0f };
+    int      m_mouseX;                              
+    int      m_mouseY;                             
+    float    m_rotationSpeed;                     
+    float    m_translationSpeed;                 
+    float    m_time;
 };

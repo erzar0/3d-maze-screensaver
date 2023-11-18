@@ -13,37 +13,18 @@ Camera::Camera(float x, float y, float z, float psi, float theta, float rotation
     m_theta(theta),
     m_rotationSpeed(rotationSpeed),
     m_translationSpeed(translationSpeed),
-    m_time(0) 
-{
-    for (int i = 0; i < 255; i++) { m_keys[i] = false; }
-	m_keyMap[FORWARD] = static_cast<int>('w');
-	m_keyMap[BACKWARD] = static_cast<int>('s');
-	m_keyMap[LEFT] = static_cast<int>('a');
-	m_keyMap[RIGHT] = static_cast<int>('d');
-}
+    m_time(0) {}
 
 
-/*
-Computes the new angle values given the mouse direction. The sight's
-only limits are when looking up or down: it is impossible for the user to
-look at his feets or straight up in the air (these edge cases would need
-a special treatment in the gluLookAt function).
-*/
-void Camera::rotation(int x, int y) {
-    std::cout << x;
-    m_theta -= static_cast<float>(x - m_mouseX) * m_rotationSpeed;
-    m_psi += static_cast<float>(y - m_mouseY) * m_rotationSpeed;
-    if (m_psi <= 0.1) m_psi = 0.1;
+void Camera::rotation(int newMouseX, int newMouseY) {
+    m_theta -= static_cast<float>(newMouseX  - m_mouseX) * m_rotationSpeed;
+    m_psi += static_cast<float>(newMouseY - m_mouseY) * m_rotationSpeed;
+    if (m_psi <= 0.1) m_psi = 0.1f;
     else if (m_psi >= 0.95f * (float) std::numbers::pi) m_psi = 0.95f * (float) std::numbers::pi;
-    m_mouseX = x;
-    m_mouseY = y;
+    m_mouseX = newMouseX;
+    m_mouseY = newMouseY;
 }
 
-/*
-Computes the new sphere center given the speed and direction of the camera.
-The direction depends on the current angles values, the keys being pushed,
-and the elapsed time since the last function call.
-*/
 void Camera::translation(sf::Time dt, sf::Keyboard::Key key) {
     float t = (float) dt.asMilliseconds();
     std::cout << t;

@@ -188,6 +188,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="bricks.png" />
+    <Image Include="gold_block.png" />
+    <Image Include="iron_block.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\sfml_system.redist.2.6.0\build\native\sfml_system.redist.targets" Condition="Exists('packages\sfml_system.redist.2.6.0\build\native\sfml_system.redist.targets')" />

@@ -3,10 +3,11 @@
 
 class Voxel {
 public:
-    Voxel(float x, float y, float z, float size, VoxelType type);
+    Voxel(float x, float y, float z, float size, VoxelType type, sf::Texture* texture);
 
     void draw() const;
     VoxelType getType() const;
+    sf::Texture* getTexture() const;
 
 private:
     float m_x;
@@ -14,4 +15,5 @@ private:
     float m_z;
     float m_size;
     VoxelType m_type;
+    sf::Texture* m_texture;
 };
