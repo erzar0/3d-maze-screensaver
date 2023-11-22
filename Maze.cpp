@@ -36,6 +36,8 @@ void Maze::generate() {
             randomCell.visited = true;
 
             auto direction = getDirection(currentPosition.first, currentPosition.second, randomPosition.first, randomPosition.second);
+            m_movementPattern.push_back(direction);
+            m_movementPattern.push_back(direction);
             switch (direction) {
             case Direction::NORTH:
                 m_cellGrid.at(currentPosition.first, currentPosition.second - 1).type = CellType::PATH;
@@ -55,6 +57,27 @@ void Maze::generate() {
         }
         else {
             stack.pop();
+            if (stack.empty()) { continue; }
+
+            auto previousPosition = stack.top();
+            switch (getDirection(currentPosition.first, currentPosition.second, previousPosition.first, previousPosition.second)) {
+            case Direction::NORTH:
+				m_movementPattern.push_back(Direction::NORTH);
+				m_movementPattern.push_back(Direction::NORTH);
+                break;
+            case Direction::EAST:
+				m_movementPattern.push_back(Direction::EAST);
+				m_movementPattern.push_back(Direction::EAST);
+                break;
+            case Direction::SOUTH:
+				m_movementPattern.push_back(Direction::SOUTH);
+				m_movementPattern.push_back(Direction::SOUTH);
+                break;
+            case Direction::WEST:
+				m_movementPattern.push_back(Direction::WEST);
+				m_movementPattern.push_back(Direction::WEST);
+                break;
+            }
         }
     }
 }
@@ -107,4 +130,34 @@ size_t Maze::getSizeY() const
 const Cell& Maze::getCellAt(int i, int j) const
 {
     return m_cellGrid.at(i, j);
+}
+
+void Maze::printMovementPattern() const {
+    for (const auto& direction : m_movementPattern)
+    {
+		switch (direction) {
+		case Direction::NORTH:
+            std::cout << "N";
+			break;
+		case Direction::EAST:
+            std::cout << "E";
+			break;
+		case Direction::SOUTH:
+            std::cout << "S";
+			break;
+		case Direction::WEST:
+            std::cout << "W";
+			break;
+		}
+    }
+    return;;
+}
+
+
+const Direction Maze::getMovementDirection(int i) const { 
+    return m_movementPattern[i % m_movementPattern.size()];
+}
+
+const std::vector<Direction>& Maze::getMovementPattern() const{
+    return m_movementPattern;
 }

@@ -26,6 +26,7 @@ public:
     float getX() { return m_x; }
     float getY() { return m_y; }
     float getZ() { return m_z; }
+    sf::Vector3f getPosition() { return sf::Vector3f(m_x, m_y, m_z); }
     float getFov() { return m_fov; }
     float isPerspectiveProjection() { return m_perspective_projection; }
 
@@ -33,6 +34,11 @@ public:
     void setX(float x) { m_x = x; }
     void setY(float y) { m_y = y; }
     void setZ(float z) { m_z = z; }
+    void setPosition(const sf::Vector3f& newPosition) { m_x = newPosition.x; m_y = newPosition.y; m_z = newPosition.z; }
+    void setPsi(float psi) { m_psi = psi; }
+    void setTheta(float theta) { m_theta = theta; }
+    void setFov(float fov) { m_fov = fov; }
+    void setPerspectiveProjection(bool perspectiveProjection) { m_perspective_projection = perspectiveProjection; }
 
     void rotation(int, int);
     void translation(sf::Time dt, sf::Keyboard::Key key);

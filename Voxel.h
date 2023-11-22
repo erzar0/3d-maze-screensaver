@@ -8,6 +8,9 @@ public:
     void draw() const;
     VoxelType getType() const;
     sf::Texture* getTexture() const;
+    float getX() const;
+    float getY() const;
+    float getZ() const;
 
 private:
     float m_x;

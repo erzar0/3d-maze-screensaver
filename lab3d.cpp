@@ -11,7 +11,7 @@ typedef sf::Keyboard sfk;
 
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
-Camera camera(3.0f, 3.0f, 3.0f, 0.0f, 0.0f, 0.005f, 0.05f, SCREEN_WIDTH, SCREEN_HEIGHT);
+Camera camera(1.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.005f, 0.005f, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 GLubyte* data;
 std::atomic<bool> write_thread_is_up(false);
@@ -76,6 +76,33 @@ void glNormalsf(sf::Vector3f v)
     glNormal3f(v.x, v.y, v.z);
 }
 
+float calculateDistance(const sf::Vector3f& v1, const sf::Vector3f& v2) {
+    float deltaX = v2.x - v1.x;
+    float deltaY = v2.y - v1.y;
+    float deltaZ = v2.z - v1.z;
+
+    return std::sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+}
+
+sf::Vector3f calculateVectorDifference(const sf::Vector3f& v1, const sf::Vector3f& v2) {
+    float deltaX = v2.x - v1.x;
+    float deltaY = v2.y - v1.y;
+    float deltaZ = v2.z - v1.z;
+
+    return sf::Vector3f(deltaX, deltaY, deltaZ);
+}
+
+sf::Vector3f normalizeVector(const sf::Vector3f& vector) {
+    float magnitude = std::sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+
+    if (magnitude != 0.0f) {
+        return sf::Vector3f(vector.x / magnitude, vector.y / magnitude, vector.z / magnitude);
+    }
+    else {
+        return vector;
+    }
+}
+
 void drawScene(const std::vector<std::reference_wrapper<std::vector<Voxel>>>& world_voxels)
 {
     glEnable(GL_DEPTH_TEST);
@@ -120,6 +147,7 @@ int main()
     sf::ContextSettings context(24, 0, 0, 4, 5);
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "grafika-3d-projekt", 7U, context);
     sf::Clock deltaClock;
+    sf::Time globalTime(sf::seconds(0));
 
     ImGui::SFML::Init(window);
 
@@ -128,9 +156,22 @@ int main()
     reshapeScreen(window.getSize());
     initOpenGL();
 
-    Maze maze(10, 10);
+    Maze maze(5, 5);
     maze.generate();
     maze.draw();
+    maze.printMovementPattern();
+
+    camera.setX(1.0f);
+    camera.setZ(1.0f);
+    camera.setY(0.5f);
+    camera.setPsi((float) std::numbers::pi / 2.0f);
+    camera.setTheta(maze.getMovementDirection(0) == Direction::SOUTH ? 0.0f : (float) std::numbers::pi / 2.0f);
+    int currentDirectionIdx{ 0 };
+    Direction currentDirection = maze.getMovementDirection(0);
+    sf::Vector3f destinationPosition(1.0f + (currentDirection == Direction::EAST ? 1.0f : 0.0f)
+        , 0.5f
+        , 1.0f + (currentDirection == Direction::SOUTH ? 1.0f : 0.0f));
+
 
     std::vector<std::vector<Voxel>> floor_voxels = std::vector<std::vector<Voxel>>(maze.getSizeX());
     std::vector<std::vector<Voxel>> ceil_voxels = std::vector<std::vector<Voxel>>(maze.getSizeX());
@@ -155,10 +196,11 @@ int main()
         world_voxels.emplace_back(std::ref(floor_voxels[i]));
         world_voxels.emplace_back(std::ref(ceil_voxels[i]));
     }
-
+    
     while (running)
     {
         sf::Time df = deltaClock.restart();
+        globalTime += df;
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -171,8 +213,41 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { camera.translation(df, sf::Keyboard::S); }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) { camera.translation(df, sf::Keyboard::A); }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) { camera.translation(df, sf::Keyboard::D); }
-        sf::Vector2i mouse = sf::Mouse::getPosition();
-        camera.rotation(mouse.x, mouse.y);
+
+		sf::Vector2i mouse = sf::Mouse::getPosition();
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+			sf::Vector2i mouse = sf::Mouse::getPosition();
+			camera.rotation(mouse.x, mouse.y);
+        }
+        else 
+        {
+            camera.setMouse(mouse.x, mouse.y);
+        }
+
+        if (calculateDistance(camera.getPosition(), destinationPosition) < 0.001)
+        {
+            currentDirection = maze.getMovementDirection(++currentDirectionIdx);
+            switch (currentDirection)
+            {
+            case Direction::NORTH:
+                destinationPosition.z -= 1.0f;
+                break;
+            case Direction::EAST:
+                destinationPosition.x += 1.0f;
+                break;
+            case Direction::SOUTH:
+                destinationPosition.z += 1.0f;
+                break;
+            case Direction::WEST:
+                destinationPosition.x -= 1.0f;
+                break;
+            }
+        }
+
+		sf::Vector3f direction = calculateVectorDifference(camera.getPosition(), destinationPosition);
+		direction = normalizeVector(direction);
+		camera.setPosition(camera.getPosition() + direction * 0.005f);
 
         drawScene(world_voxels);
 

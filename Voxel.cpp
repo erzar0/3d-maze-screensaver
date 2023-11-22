@@ -107,3 +107,19 @@ VoxelType Voxel::getType() const {
 sf::Texture* Voxel::getTexture() const {
     return  m_texture;
 }
+
+
+float Voxel::getX() const
+{
+    return m_x;
+}
+float Voxel::getY() const 
+{
+    return m_y;
+}
+float Voxel::getZ() const 
+{
+    return m_z;
+}
+
+
