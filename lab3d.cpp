@@ -9,12 +9,9 @@
 typedef sf::Event sfe;
 typedef sf::Keyboard sfk;
 
-int SCREEN_WIDTH = 1280;
-int SCREEN_HEIGHT = 720;
+int SCREEN_WIDTH = 1920;
+int SCREEN_HEIGHT = 1080;
 Camera camera(1.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.005f, 0.005f, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-GLubyte* data;
-std::atomic<bool> write_thread_is_up(false);
 
 sf::Texture bricks_texture;
 sf::Texture gold_texture;
@@ -24,13 +21,13 @@ void initOpenGL(void)
 {
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_COLOR_MATERIAL);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
+    //glEnable(GL_NORMALIZE);
+    //glEnable(GL_COLOR_MATERIAL);
 
-    GLfloat light_ambient_global[4] = { 0.5,0.5,0.5,1 };
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_ambient_global);
+    //GLfloat light_ambient_global[4] = { 0.5,0.5,0.5,1 };
+    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_ambient_global);
 
     bricks_texture.loadFromFile("bricks.png");
     bricks_texture.generateMipmap();
@@ -57,24 +54,24 @@ void reshapeScreen(sf::Vector2u size)
     glLoadIdentity();
 }
 
-sf::Vector3f cross_product(sf::Vector3f u, sf::Vector3f v)
-{
-    sf::Vector3f res;
-    res.x = u.y * v.z - u.z * v.y;
-    res.y = u.z * v.x - u.x * v.z;
-    res.z = u.x * v.y - u.y * v.x;
-    return res;
-}
+//sf::Vector3f cross_product(sf::Vector3f u, sf::Vector3f v)
+//{
+//    sf::Vector3f res;
+//    res.x = u.y * v.z - u.z * v.y;
+//    res.y = u.z * v.x - u.x * v.z;
+//    res.z = u.x * v.y - u.y * v.x;
+//    return res;
+//}
 
-void glVertexsf(sf::Vector3f v)
-{
-    glVertex3f(v.x, v.y, v.z);
-}
-
-void glNormalsf(sf::Vector3f v)
-{
-    glNormal3f(v.x, v.y, v.z);
-}
+//void glVertexsf(sf::Vector3f v)
+//{
+//    glVertex3f(v.x, v.y, v.z);
+//}
+//
+//void glNormalsf(sf::Vector3f v)
+//{
+//    glNormal3f(v.x, v.y, v.z);
+//}
 
 float calculateDistance(const sf::Vector3f& v1, const sf::Vector3f& v2) {
     float deltaX = v2.x - v1.x;
@@ -103,13 +100,22 @@ sf::Vector3f normalizeVector(const sf::Vector3f& vector) {
     }
 }
 
+int getRandomNumber(int min, int max) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::uniform_int_distribution<int> distribution(min, max);
+
+    return distribution(gen);
+}
+
 void drawScene(const std::vector<std::reference_wrapper<std::vector<Voxel>>>& world_voxels)
 {
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    gluLookAt(camera.getX(), camera.getY(), camera.getZ(),camera.getSightX(), camera.getSightY(), camera.getSightZ(), 0.0, 1.0, 0.0);
+    gluLookAt(camera.getX(), camera.getY(), camera.getZ(),camera.getSightX(), camera.getSightY(), camera.getSightZ(), cos(camera.getXYRotationAngle()), sin(camera.getXYRotationAngle()), 0.0);
 
     glBegin(GL_LINES);
     glColor3f(1.0, 0.0, 0.0); glVertex3f(0, 0, 0); glVertex3f(100000.0, 0, 0);
@@ -130,17 +136,6 @@ void drawScene(const std::vector<std::reference_wrapper<std::vector<Voxel>>>& wo
     glDisable(GL_TEXTURE_2D);
 }
 
-void write_data_to_disk(sf::Vector2u size)
-{
-    sf::Image image;
-    image.create(size.x, size.y, data);
-    image.flipVertically();
-    image.saveToFile("screen.png");
-
-    delete[]data;
-    write_thread_is_up = false;
-}
-
 int main()
 {
     bool running = true;
@@ -156,7 +151,7 @@ int main()
     reshapeScreen(window.getSize());
     initOpenGL();
 
-    Maze maze(5, 5);
+    Maze maze(10, 10);
     maze.generate();
     maze.draw();
     maze.printMovementPattern();
@@ -196,6 +191,9 @@ int main()
         world_voxels.emplace_back(std::ref(floor_voxels[i]));
         world_voxels.emplace_back(std::ref(ceil_voxels[i]));
     }
+
+    bool do_the_roll = false;
+    float previous_y_up = 1.0f;
     
     while (running)
     {
@@ -217,7 +215,6 @@ int main()
 		sf::Vector2i mouse = sf::Mouse::getPosition();
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
-			sf::Vector2i mouse = sf::Mouse::getPosition();
 			camera.rotation(mouse.x, mouse.y);
         }
         else 
@@ -225,30 +222,87 @@ int main()
             camera.setMouse(mouse.x, mouse.y);
         }
 
-        if (calculateDistance(camera.getPosition(), destinationPosition) < 0.001)
+        if (!(globalTime.asSeconds() < 3))
         {
-            currentDirection = maze.getMovementDirection(++currentDirectionIdx);
-            switch (currentDirection)
+			if (calculateDistance(camera.getPosition(), destinationPosition) < 0.001)
+			{
+				int randInt = getRandomNumber(1, 6);
+				if (randInt == 6)
+				{
+					do_the_roll = true;
+				}
+
+				currentDirection = maze.getMovementDirection(++currentDirectionIdx);
+				switch (currentDirection)
+				{
+				case Direction::NORTH:
+					destinationPosition.z -= 1.0f;
+					break;
+				case Direction::EAST:
+					destinationPosition.x += 1.0f;
+					break;
+				case Direction::SOUTH:
+					destinationPosition.z += 1.0f;
+					break;
+				case Direction::WEST:
+					destinationPosition.x -= 1.0f;
+					break;
+				}
+			}
+			sf::Vector3f direction = calculateVectorDifference(camera.getPosition(), destinationPosition);
+			direction = normalizeVector(direction);
+			camera.setPosition(camera.getPosition() + direction * 0.005f);
+
+			float directionAngle = direction.z > 0 ? atan2f(direction.x, std::fmaxf(direction.z, 0.0001)) : atan2f(direction.x, std::fminf(direction.z, -0.0001));
+			float deltaAngle = 0.015;
+			if (fabs(directionAngle - fmod(camera.getTheta(), (float)std::numbers::pi)) > 0.03)
+			{
+				//std::cout << fmod(camera.getTheta(), (float)std::numbers::pi) << "\n";
+				if (directionAngle < fmod(camera.getTheta(), (float)std::numbers::pi)) 
+				{
+					camera.setTheta(camera.getTheta() - deltaAngle);
+				}
+				else 
+				{
+					camera.setTheta(camera.getTheta() + deltaAngle);
+				}
+			}
+
+
+            if (do_the_roll == true)
             {
-            case Direction::NORTH:
-                destinationPosition.z -= 1.0f;
-                break;
-            case Direction::EAST:
-                destinationPosition.x += 1.0f;
-                break;
-            case Direction::SOUTH:
-                destinationPosition.z += 1.0f;
-                break;
-            case Direction::WEST:
-                destinationPosition.x -= 1.0f;
-                break;
+                if (fabs(sin(camera.getXYRotationAngle()) - previous_y_up) < 0.001f)
+                {
+                    do_the_roll = false;
+                    previous_y_up *= -1;
+                    camera.setXYRotationAngle(sin(camera.getXYRotationAngle()) > 0 ? (float)std::numbers::pi / 2.0f : (float)-std::numbers::pi / 2.0f);
+                }
+                else {
+                    if (previous_y_up > 0)
+                    {
+                        camera.setXYRotationAngle(camera.getXYRotationAngle() - 0.005);
+                    }
+                    else 
+                    {
+                        camera.setXYRotationAngle(camera.getXYRotationAngle() + 0.005);
+                    }
+                }
             }
+            std::cout << camera.getXYRotationAngle() << "\n";
         }
-
-		sf::Vector3f direction = calculateVectorDifference(camera.getPosition(), destinationPosition);
-		direction = normalizeVector(direction);
-		camera.setPosition(camera.getPosition() + direction * 0.005f);
-
+		else 
+		{
+			for (auto& voxel_vec : floor_voxels)
+			{
+				for (auto& voxel : voxel_vec)
+				{
+					if (voxel.getType() == VoxelType::WALL)
+					{
+						voxel.setY(-0.5f + 1.0f * globalTime.asSeconds() / 3.0f);
+					}
+				}
+			}
+		}
         drawScene(world_voxels);
 
         ImGui::SFML::Update(window, df);

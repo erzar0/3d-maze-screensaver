@@ -12,6 +12,10 @@ public:
     float getY() const;
     float getZ() const;
 
+    void setX(float);
+    void setY(float);
+    void setZ(float);
+
 private:
     float m_x;
     float m_y;

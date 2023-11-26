@@ -123,3 +123,15 @@ float Voxel::getZ() const
 }
 
 
+void Voxel::setX(float x)
+{
+    m_x = x;
+}
+void Voxel::setY(float y)
+{
+    m_y = y;
+}
+void Voxel::setZ(float z)
+{
+    m_z = z;
+}
