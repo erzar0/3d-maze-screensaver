@@ -21,13 +21,6 @@ void initOpenGL(void)
 {
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_LIGHTING);
-    //glEnable(GL_LIGHT0);
-    //glEnable(GL_NORMALIZE);
-    //glEnable(GL_COLOR_MATERIAL);
-
-    //GLfloat light_ambient_global[4] = { 0.5,0.5,0.5,1 };
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, light_ambient_global);
 
     bricks_texture.loadFromFile("bricks.png");
     bricks_texture.generateMipmap();
@@ -53,25 +46,6 @@ void reshapeScreen(sf::Vector2u size)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
-
-//sf::Vector3f cross_product(sf::Vector3f u, sf::Vector3f v)
-//{
-//    sf::Vector3f res;
-//    res.x = u.y * v.z - u.z * v.y;
-//    res.y = u.z * v.x - u.x * v.z;
-//    res.z = u.x * v.y - u.y * v.x;
-//    return res;
-//}
-
-//void glVertexsf(sf::Vector3f v)
-//{
-//    glVertex3f(v.x, v.y, v.z);
-//}
-//
-//void glNormalsf(sf::Vector3f v)
-//{
-//    glNormal3f(v.x, v.y, v.z);
-//}
 
 float calculateDistance(const sf::Vector3f& v1, const sf::Vector3f& v2) {
     float deltaX = v2.x - v1.x;
@@ -154,7 +128,7 @@ int main()
     Maze maze(10, 10);
     maze.generate();
     maze.draw();
-    maze.printMovementPattern();
+    //maze.printMovementPattern();
 
     camera.setX(1.0f);
     camera.setZ(1.0f);
@@ -249,24 +223,26 @@ int main()
 					break;
 				}
 			}
-			sf::Vector3f direction = calculateVectorDifference(camera.getPosition(), destinationPosition);
-			direction = normalizeVector(direction);
-			camera.setPosition(camera.getPosition() + direction * 0.005f);
+            if(!sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            {
+				sf::Vector3f direction = calculateVectorDifference(camera.getPosition(), destinationPosition);
+				direction = normalizeVector(direction);
+				camera.setPosition(camera.getPosition() + direction * 0.005f);
 
-			float directionAngle = direction.z > 0 ? atan2f(direction.x, std::fmaxf(direction.z, 0.0001)) : atan2f(direction.x, std::fminf(direction.z, -0.0001));
-			float deltaAngle = 0.015;
-			if (fabs(directionAngle - fmod(camera.getTheta(), (float)std::numbers::pi)) > 0.03)
-			{
-				//std::cout << fmod(camera.getTheta(), (float)std::numbers::pi) << "\n";
-				if (directionAngle < fmod(camera.getTheta(), (float)std::numbers::pi)) 
+				float directionAngle = direction.z > 0 ? atan2f(direction.x, std::fmaxf(direction.z, 0.0001)) : atan2f(direction.x, std::fminf(direction.z, -0.0001));
+				float deltaAngle = 0.015;
+				if (fabs(directionAngle - fmod(camera.getTheta(), (float)std::numbers::pi)) > 0.03 && !sf::Mouse::isButtonPressed(sf::Mouse::Left))
 				{
-					camera.setTheta(camera.getTheta() - deltaAngle);
-				}
-				else 
-				{
-					camera.setTheta(camera.getTheta() + deltaAngle);
-				}
-			}
+					if (directionAngle < fmod(camera.getTheta(), (float)std::numbers::pi)) 
+					{
+						camera.setTheta(camera.getTheta() - deltaAngle);
+					}
+					else 
+					{
+						camera.setTheta(camera.getTheta() + deltaAngle);
+					}
+				} 
+            }
 
 
             if (do_the_roll == true)
@@ -288,7 +264,6 @@ int main()
                     }
                 }
             }
-            std::cout << camera.getXYRotationAngle() << "\n";
         }
 		else 
 		{

@@ -27,7 +27,6 @@ void Camera::rotation(int newMouseX, int newMouseY) {
 
 void Camera::translation(sf::Time dt, sf::Keyboard::Key key) {
     float t = (float) dt.asMilliseconds();
-    std::cout << t;
     if (key == sf::Keyboard::W) {
         m_x += sin(m_theta) * sin(m_psi) * m_translationSpeed * t;
         m_y += cos(m_psi) * m_translationSpeed * t;
